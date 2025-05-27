@@ -1,42 +1,69 @@
 import { ThemedText } from '@/components/ThemedText';
 import { DarkTheme, LightTheme } from '@/styles/theme';
+import { useFocusEffect } from '@react-navigation/native';
 import { Accelerometer, Gyroscope } from 'expo-sensors';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
 import { Grid, LineChart, YAxis } from 'react-native-svg-charts';
 
 const MAX_POINTS = 50;
 
-function useSensor(sensor:any, interval = 100) {
+function useSensor(sensor: any, interval = 100) {
   const [data, setData] = useState({ x: 0, y: 0, z: 0 });
   const [history, setHistory] = useState({ x: [], y: [], z: [] });
+  const [subscription, setSubscription] = useState<any>(null);
 
-  useEffect(() => {
-    const subscription = sensor.addListener((sensorData:any) => {
+  const start = () => {
+    sensor.setUpdateInterval(interval);
+    const sub = sensor.addListener((sensorData: any) => {
       setData(sensorData);
-      setHistory((prev:any) => ({
+      setHistory((prev: any) => ({
         x: [...prev.x.slice(-MAX_POINTS), sensorData.x],
         y: [...prev.y.slice(-MAX_POINTS), sensorData.y],
         z: [...prev.z.slice(-MAX_POINTS), sensorData.z],
       }));
     });
+    setSubscription(sub);
+  };
 
-    sensor.setUpdateInterval(interval);
+  const stop = () => {
+    subscription?.remove();
+    setSubscription(null);
+  };
 
-    return () => subscription.remove();
-  }, []);
-
-  return { data, history };
+  return { data, history, start, stop };
 }
 
 export default function AccelerometerGyroscopeSensor() {
-  const { data: accData, history: accHistory } = useSensor(Accelerometer, 10);
-  const { data: gyroData, history: gyroHistory } = useSensor(Gyroscope, 10);
+  const {
+    data: accData,
+    history: accHistory,
+    start: startAcc,
+    stop: stopAcc,
+  } = useSensor(Accelerometer, 10);
+
+  const {
+    data: gyroData,
+    history: gyroHistory,
+    start: startGyro,
+    stop: stopGyro,
+  } = useSensor(Gyroscope, 10);
 
   const colorScheme = useColorScheme();
   const theme = colorScheme === 'dark' ? DarkTheme : LightTheme;
 
-  const renderChart = (history:any, title:string) => (
+  useFocusEffect(
+    useCallback(() => {
+      startAcc();
+      startGyro();
+      return () => {
+        stopAcc();
+        stopGyro();
+      };
+    }, [])
+  );
+
+  const renderChart = (history: any, title: string) => (
     <View style={styles.chartContainer}>
       <ThemedText style={styles.chartTitle}>{title}</ThemedText>
       <View style={{ flexDirection: 'row', height: 150 }}>
@@ -73,15 +100,19 @@ export default function AccelerometerGyroscopeSensor() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <ThemedText style={styles.title}>3-Axis Accelerometer</ThemedText>
-      <ThemedText style={styles.value}>X: {accData.x.toFixed(3)} Y: {accData.y.toFixed(3)} Z: {accData.z.toFixed(3)}</ThemedText>
+      <ThemedText style={styles.value}>
+        X: {accData.x.toFixed(3)} Y: {accData.y.toFixed(3)} Z: {accData.z.toFixed(3)}
+      </ThemedText>
 
       <ThemedText style={styles.title}>Gyroscope</ThemedText>
-      <ThemedText style={styles.value}>X: {gyroData.x.toFixed(3)} Y: {gyroData.y.toFixed(3)} Z: {gyroData.z.toFixed(3)}</ThemedText>
+      <ThemedText style={styles.value}>
+        X: {gyroData.x.toFixed(3)} Y: {gyroData.y.toFixed(3)} Z: {gyroData.z.toFixed(3)}
+      </ThemedText>
 
       {renderChart(accHistory, 'Accelerometer')}
       {renderChart(gyroHistory, 'Gyroscope')}
 
-      <ThemedText>X -&gt; Red, Y -&gt; Green, Z -&gt; Blue</ThemedText>
+      <ThemedText>X → Red, Y → Green, Z → Blue</ThemedText>
     </ScrollView>
   );
 }
