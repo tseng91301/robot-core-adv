@@ -1,28 +1,111 @@
 import { ThemedText } from '@/components/ThemedText';
-import { Accelerometer } from 'expo-sensors';
+import { DarkTheme, LightTheme } from '@/styles/theme';
+import { Accelerometer, Gyroscope } from 'expo-sensors';
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
+import { Grid, LineChart, YAxis } from 'react-native-svg-charts';
 
-export default function AccelerometerSensor() {
+const MAX_POINTS = 50;
+
+function useSensor(sensor:any, interval = 100) {
   const [data, setData] = useState({ x: 0, y: 0, z: 0 });
+  const [history, setHistory] = useState({ x: [], y: [], z: [] });
 
   useEffect(() => {
-    // 設定監聽器
-    const subscription = Accelerometer.addListener(accelerometerData => {
-      setData(accelerometerData);
+    const subscription = sensor.addListener((sensorData:any) => {
+      setData(sensorData);
+      setHistory((prev:any) => ({
+        x: [...prev.x.slice(-MAX_POINTS), sensorData.x],
+        y: [...prev.y.slice(-MAX_POINTS), sensorData.y],
+        z: [...prev.z.slice(-MAX_POINTS), sensorData.z],
+      }));
     });
 
-    // 設定更新頻率
-    Accelerometer.setUpdateInterval(10); // 每 10 毫秒更新一次
+    sensor.setUpdateInterval(interval);
 
-    return () => subscription.remove(); // 清除監聽
+    return () => subscription.remove();
   }, []);
 
-  return (
-    <View>
-      <ThemedText>X: {data.x.toFixed(2)}</ThemedText>
-      <ThemedText>Y: {data.y.toFixed(2)}</ThemedText>
-      <ThemedText>Z: {data.z.toFixed(2)}</ThemedText>
+  return { data, history };
+}
+
+export default function AccelerometerGyroscopeSensor() {
+  const { data: accData, history: accHistory } = useSensor(Accelerometer, 10);
+  const { data: gyroData, history: gyroHistory } = useSensor(Gyroscope, 10);
+
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === 'dark' ? DarkTheme : LightTheme;
+
+  const renderChart = (history:any, title:string) => (
+    <View style={styles.chartContainer}>
+      <ThemedText style={styles.chartTitle}>{title}</ThemedText>
+      <View style={{ flexDirection: 'row', height: 150 }}>
+        <YAxis
+          data={[...history.x, ...history.y, ...history.z]}
+          contentInset={{ top: 10, bottom: 10 }}
+          svg={{ fill: theme.text, fontSize: 10 }}
+          numberOfTicks={5}
+        />
+        <LineChart
+          style={{ flex: 1, marginLeft: 10 }}
+          data={history.x}
+          svg={{ stroke: 'red' }}
+          contentInset={{ top: 10, bottom: 10 }}
+        >
+          <Grid />
+        </LineChart>
+        <LineChart
+          style={StyleSheet.absoluteFill}
+          data={history.y}
+          svg={{ stroke: 'green' }}
+          contentInset={{ top: 10, bottom: 10 }}
+        />
+        <LineChart
+          style={StyleSheet.absoluteFill}
+          data={history.z}
+          svg={{ stroke: 'blue' }}
+          contentInset={{ top: 10, bottom: 10 }}
+        />
+      </View>
     </View>
   );
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <ThemedText style={styles.title}>3-Axis Accelerometer</ThemedText>
+      <ThemedText style={styles.value}>X: {accData.x.toFixed(3)} Y: {accData.y.toFixed(3)} Z: {accData.z.toFixed(3)}</ThemedText>
+
+      <ThemedText style={styles.title}>Gyroscope</ThemedText>
+      <ThemedText style={styles.value}>X: {gyroData.x.toFixed(3)} Y: {gyroData.y.toFixed(3)} Z: {gyroData.z.toFixed(3)}</ThemedText>
+
+      {renderChart(accHistory, 'Accelerometer')}
+      {renderChart(gyroHistory, 'Gyroscope')}
+
+      <ThemedText>X -&gt; Red, Y -&gt; Green, Z -&gt; Blue</ThemedText>
+    </ScrollView>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    paddingBottom: 80,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 20,
+  },
+  value: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  chartContainer: {
+    marginTop: 10,
+    marginBottom: 30,
+  },
+  chartTitle: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+});
