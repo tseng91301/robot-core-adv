@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Camera, useCameraDevices, useFrameProcessor } from 'react-native-vision-camera';
 
+import { useIsFocused } from '@react-navigation/native';
 import { loadTensorflowModel, TensorflowModel } from 'react-native-fast-tflite';
 import { useResizePlugin } from 'vision-camera-resize-plugin';
 
@@ -22,7 +23,6 @@ export default function ImgDetection() {
   const [hasPermission, setHasPermission] = useState(false);
   const devices = useCameraDevices();
   const device = devices[0];
-  const [boxes, setBoxes] = useState([]);
   const actualModel = useRef<TensorflowModel>(null);
 
   useEffect(() => {
@@ -41,6 +41,8 @@ export default function ImgDetection() {
     };
     initModel();
   }, []);
+
+  const isFocused = useIsFocused();
 
   const { resize } = useResizePlugin()
 
@@ -65,15 +67,10 @@ export default function ImgDetection() {
 
       const result = actualModel.current.runSync([resized])
       const num_detections = result[3]?.[0] ?? 0
-      // console.log('Result: ' + num_detections)
+      console.log('Result: ' + num_detections)
     },
     [actualModel]
   )
-
-  const detectObjects = async () => {
-    if (!cameraRef.current) return;
-    console.log("Detecting objects...")
-  };
 
   if (!device || !hasPermission) return <Text>Loading...</Text>;
 
@@ -83,13 +80,10 @@ export default function ImgDetection() {
         <Camera
           style={StyleSheet.absoluteFill}
           device={device}
-          isActive={true}
+          isActive={isFocused && hasPermission}
           frameProcessor={frameProcessor}
           pixelFormat="yuv"
         />
-      </View>
-      <View style={styles.button}>
-        <Button title="Detect Objects" onPress={detectObjects} />
       </View>
     </View>
   );
