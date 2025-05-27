@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Python Tester</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 1em; }
+    textarea { width: 100%; height: 200px; font-family: monospace; }
+    button { margin-top: 10px; padding: 10px 20px; }
+    pre { background: #111; color: #0f0; padding: 10px; height: 150px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+  <h2>🧪 Python 測試器（內建 Pyodide）</h2>
+
+  <textarea id="code">
+def main():
+    print("Hello, World!")
+    motor_speed = 50
+    print(f"Setting motor speed to {motor_speed}")
+    control_motor(motor_speed)
+    print("控制完成")
+main()
+  </textarea>
+  <br/>
+  <button onclick="runPython()">▶️ 執行</button>
+
+  <h3>📜 Log:</h3>
+  <pre id="output"></pre>
+  <button onclick="clearLog()">🧹 清除 Log</button>
+
+  <script>
+    let pyodide;
+
+    function control_motor(speed) {
+      log(`🌀 控制馬達速度為：${speed}`);
+      window.ReactNativeWebView?.postMessage(`MOTOR:${speed}`);
+    }
+
+    function log(msg) {
+      const output = document.getElementById("output");
+      output.textContent += msg + "\n";
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById("output").textContent = "";
+    }
+
+    async function initPyodide() {
+      log("🔄 正在載入 Pyodide...");
+      pyodide = await loadPyodide();
+      await pyodide.runPythonAsync(`
+        import js
+        def log(msg): js.log(str(msg))
+        def print(msg): js.log(str(msg))
+        def clearLog(): js.clearLog()
+        def control_motor(speed): js.control_motor(int(speed))
+      `);
+      log("✅ Pyodide 載入完成！");
+    }
+
+    async function runPython() {
+      const code = document.getElementById("code").value;
+      try {
+        await pyodide.runPythonAsync(code);
+      } catch (err) {
+        log("❌ 發生錯誤：" + err);
+      }
+    }
+
+    initPyodide();
+  </script>
+</body>
+</html>

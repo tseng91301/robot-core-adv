@@ -4,6 +4,7 @@ import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 const tools = [
   { name: 'Accelerometer, Gyroscope', screen: 'AccelerometerSensor' },
+  { name: 'Python Interpreter', screen: 'PythonTester'}
   // 你可以在這裡新增更多功能，例如：
   // { name: 'Gyroscope', screen: 'GyroscopeSensor' },
 ];

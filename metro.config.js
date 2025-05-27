@@ -21,7 +21,7 @@ const config = {
 
   resolver: {
     ...defaultConfig.resolver,
-    assetExts: ['tflite', 'png', 'jpg', 'ttf'],
+    assetExts: ['tflite', 'png', 'jpg', 'ttf', 'html'],
     blacklistRE: exclusionList(
       modules.map((m) =>
         new RegExp(`^${escape(path.join(root, 'node_modules', m))}\\/.*$`)
