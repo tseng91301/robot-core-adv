@@ -30,7 +30,7 @@ const ToolsHomeScreen = ({ navigation }: { navigation: any }) => {
 export default ToolsHomeScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+  container: { flex: 1, padding: 20 },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
   button: {
     padding: 16,
