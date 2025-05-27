@@ -1,5 +1,5 @@
 {
-  "name": "robot-core-adv-2",
+  "name": "robot-core-adv",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {

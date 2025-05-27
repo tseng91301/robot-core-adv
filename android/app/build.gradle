@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.tseng001.robotcoreadv2'
+    namespace 'com.tseng001.robotcoreadv'
     defaultConfig {
-        applicationId 'com.tseng001.robotcoreadv2'
+        applicationId 'com.tseng001.robotcoreadv'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

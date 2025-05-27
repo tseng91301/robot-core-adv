@@ -1,4 +1,4 @@
-package com.tseng001.robotcoreadv2
+package com.tseng001.robotcoreadv
 
 import android.app.Application
 import android.content.res.Configuration
@@ -16,7 +16,7 @@ import com.facebook.soloader.SoLoader
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 
-import com.robotcoreadv2.MyBlePackage
+import com.robotcoreadv.MyBlePackage
 
 
 class MainApplication : Application(), ReactApplication {

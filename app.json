@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "robot-core-adv-2",
-    "slug": "robot-core-adv-2",
+    "name": "robot-core-adv",
+    "slug": "robot-core-adv",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "robotcoreadv2",
+    "scheme": "robotcoreadv",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -17,7 +17,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.tseng001.robotcoreadv2"
+      "package": "com.tseng001.robotcoreadv"
     },
     "web": {
       "bundler": "metro",

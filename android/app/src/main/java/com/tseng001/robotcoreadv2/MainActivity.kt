@@ -1,4 +1,4 @@
-package com.tseng001.robotcoreadv2
+package com.tseng001.robotcoreadv
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

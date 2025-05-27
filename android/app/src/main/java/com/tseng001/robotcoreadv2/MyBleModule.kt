@@ -1,4 +1,4 @@
-package com.robotcoreadv2
+package com.robotcoreadv
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
