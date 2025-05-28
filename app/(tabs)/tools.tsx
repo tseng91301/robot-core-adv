@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AccelerometerSensor from '../features/tools/AccelerometerSensor';
+import PythonFromExternalStorageScreen from '../features/tools/PyExecuteKernel';
 import PythonTester from '../features/tools/PythonTester';
 import ToolsHomeScreen from '../features/tools/ToolsHomeScreen';
 
@@ -11,6 +12,7 @@ export default function HomeStackNavigator() {
       <Stack.Screen name="ToolsHome" component={ToolsHomeScreen} options={{ title: 'Tools' }} />
       <Stack.Screen name="AccelerometerSensor" component={AccelerometerSensor} options={{ title: 'Accelerometer Sensor, Gyroscope' }} />
       <Stack.Screen name="PythonTester" component={PythonTester} options={{ title: 'Python Test' }} />
+      <Stack.Screen name="PyExecuteKernel" component={PythonFromExternalStorageScreen} options={{ title: 'Python Executer' }} />
     </Stack.Navigator>
   );
 }

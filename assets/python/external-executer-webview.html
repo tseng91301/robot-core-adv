@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 1em; }
+    textarea { width: 100%; height: 150px; }
+    button { margin: 5px; }
+    pre { background: #000; color: #0f0; padding: 10px; height: 150px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h3>Python 測試器</h3>
+  <p>將檔案放置於 /sdcard/Documents/robot-core-adv/ 內，會自動運行 main.py</p>
+  <button onclick="runCode()">執行</button>
+  <button onclick="clearLog()">清除 Log</button>
+  <button onclick="reLoad()">重新載入 Kernel</button>
+  <pre id="output"></pre>
+  <script>
+    // 將 console.log 轉送到 React Native
+    const originalLog = console.log;
+    console.log = function (...args) {
+      alert("log")
+      originalLog(...args);
+      try {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'CONSOLE_LOG', log: args.join(' ') }));
+      } catch (e) {}
+    };
+  </script>
+  <script>
+    let pyodide;
+    let scriptMap = {};
+
+    function log(msg) {
+      const output = document.getElementById('output');
+      output.textContent += msg + '\n';
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById('output').textContent = '';
+    }
+
+    function reLoad() {
+      window.location.reload();
+    }
+
+    async function runCode() {
+      try {
+        log('🚀 Executing main.py...');
+        log("--------------------------------------------------");
+        await pyodide.runPythonAsync('exec(open("main.py").read())');
+        log("--------------------------------------------------");
+        log('✅ Finish Execution');
+      } catch (err) {
+        log(`❌ Error: ${err}`);
+      }
+    }
+
+    async function main() {
+      log('Loading Pyodide...');
+      pyodide = await loadPyodide();
+      log('Finish Pyodide setup!');
+
+      // 定義 JS 端可供 Python 呼叫的功能
+      await pyodide.runPythonAsync(`
+        import js
+        def log(msg): js.log(str(msg))
+        def print(msg): js.log(str(msg))
+      `);
+      // 告知 React Native：初始化完成，可傳送資料
+      window.ReactNativeWebView?.postMessage(JSON.stringify({ type: 'PYODIDE_READY' }));
+    }
+
+    // 接收來自 React Native 的訊息
+    document.addEventListener('message', async (event) => {
+      const msg = JSON.parse(event.data);
+      if (msg.type === 'LOAD_SCRIPTS') {
+        scriptMap = msg.scripts;
+        for (let [name, content] of Object.entries(scriptMap)) {
+          pyodide.FS.writeFile(name, content);
+        }
+        // 假設你有一個 main.py，現在明確執行它：
+        if (scriptMap['main.py']) {
+          runCode();
+        }
+      }
+    });
+
+    main();
+  </script>
+</body>
+</html>
