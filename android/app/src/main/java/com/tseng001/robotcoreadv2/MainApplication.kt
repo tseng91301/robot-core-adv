@@ -18,6 +18,8 @@ import expo.modules.ReactNativeHostWrapper
 
 import com.robotcoreadv.MyBlePackage
 
+import managePermission.PermissionFilePackage;
+
 
 class MainApplication : Application(), ReactApplication {
 
@@ -29,6 +31,8 @@ class MainApplication : Application(), ReactApplication {
             // Packages that cannot be autolinked yet can be added manually here, for example:
             // packages.add(MyReactNativePackage())
             packages.add(MyBlePackage())
+            packages.add(PermissionFilePackage())
+
             return packages
           }
 
