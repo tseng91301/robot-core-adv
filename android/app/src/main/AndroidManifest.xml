@@ -38,6 +38,14 @@
     <uses-native-library android:name="libOpenCL-pixel.so" android:required="false" />
     <uses-native-library android:name="libGLES_mali.so" android:required="false" />
     <uses-native-library android:name="libPVROCL.so" android:required="false" />
+
+    <receiver
+        android:name="com.stupidbeauty.shutdownat2100androidnative.BootBroadcastReceiver"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.BOOT_COMPLETED" />
+        </intent-filter>
+    </receiver>
   </application>
 
   <uses-feature android:name="android.hardware.camera.any" />
@@ -48,7 +56,6 @@
   <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
 
   <!-- Android 10 以上要加 ACCESS_FINE_LOCATION 掃描 BLE -->
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
@@ -60,4 +67,6 @@
 
   <uses-permission android:name="android.permission.CAMERA" />
   <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 </manifest>

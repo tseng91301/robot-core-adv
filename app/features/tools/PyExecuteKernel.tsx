@@ -1,9 +1,11 @@
 // React Native Component: PythonTesterScreen.js
-import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Linking, PermissionsAndroid, Platform, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, Linking, NativeModules, PermissionsAndroid, Platform, View } from 'react-native';
 import RNFS from 'react-native-fs';
 import { WebView } from 'react-native-webview';
 
+const {FtpServerModule} = NativeModules;
 
 const PYTHON_DIR = `${RNFS.ExternalStorageDirectoryPath}/Documents/robot-core-adv/python`;
 const DEFAULT_SCRIPT = `def main():\n    print("Hello from default script!")\nmain()`;
@@ -18,11 +20,19 @@ async function ensurePythonDirAndDefaultScript() {
   } else {
     console.log('📁 Python 資料夾已存在');
   }
+  const pkgF = await RNFS.exists(`${PYTHON_DIR}/packages.txt`);
+  if (!pkgF) {
+    await RNFS.writeFile(`${PYTHON_DIR}/packages.txt`, "", 'utf8');
+    console.log('✅ 已建立 packages.txt');
+  } else {
+    console.log('📁 packages.txt 已存在');
+  }
 }
 
 const PythonFromExternalStorageScreen = () => {
   const webViewRef = useRef(null);
   const [pyScripts, setPyScripts] = useState([]);
+  const [pyPackages, setPyPackages] = useState([]);
 
   // 請求 Android 檔案存取權限
   const requestPermission = async () => {
@@ -50,6 +60,16 @@ const PythonFromExternalStorageScreen = () => {
     }
     return true;
   };
+  
+  useFocusEffect(
+    useCallback(() => {
+      // Load FTP Server
+      FtpServerModule.startFtpServer("root", "robotCoreAdv", PYTHON_DIR, 34829, "");
+      return () => {
+        FtpServerModule.stopFtpServer();
+      };
+    }, [])
+  )
 
   ensurePythonDirAndDefaultScript();
 
@@ -67,6 +87,12 @@ const PythonFromExternalStorageScreen = () => {
         scripts[file.name] = content;
       }
       setPyScripts(scripts);
+      const pkgFiles = await RNFS.readFile(`${PYTHON_DIR}/packages.txt`, 'utf8');
+      const packages:any = pkgFiles
+        .split('\n')
+        .map(pkg => pkg.trim())
+        .filter(pkg => pkg !== '');
+      setPyPackages(packages);
     } catch (err) {
       console.error('讀取失敗:', err);
     }
@@ -87,6 +113,13 @@ const PythonFromExternalStorageScreen = () => {
     if (data.type === 'CONSOLE_LOG') {
       console.log('🌐 WebView Console:', data.log);
     } else if (data.type === "PYODIDE_READY") {
+      console.log("Loading packages");
+      webViewRef.current.postMessage(JSON.stringify({
+        type: 'LOAD_PACKAGES',
+        packages: pyPackages
+      }));
+    } else if (data.type === 'MODULE_LOADED') {
+      console.log("Loading scripts");
       webViewRef.current.postMessage(JSON.stringify({
         type: 'LOAD_SCRIPTS',
         scripts: pyScripts

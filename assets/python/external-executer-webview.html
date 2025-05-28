@@ -13,6 +13,7 @@
 <body>
   <h3>Python 測試器</h3>
   <p>將檔案放置於 /sdcard/Documents/robot-core-adv/ 內，會自動運行 main.py</p>
+  <p>packages.txt 用於存放所需的packages，在載入Python時會先加載完成 (類似 pip install)，格式: 每個套件名稱用換行分開</p>
   <button onclick="runCode()">執行</button>
   <button onclick="clearLog()">清除 Log</button>
   <button onclick="reLoad()">重新載入 Kernel</button>
@@ -21,7 +22,6 @@
     // 將 console.log 轉送到 React Native
     const originalLog = console.log;
     console.log = function (...args) {
-      alert("log")
       originalLog(...args);
       try {
         window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'CONSOLE_LOG', log: args.join(' ') }));
@@ -43,7 +43,7 @@
     }
 
     function reLoad() {
-      window.location.reload();
+      document.location.reload();
     }
 
     async function runCode() {
@@ -58,6 +58,15 @@
       }
     }
 
+    async function load_module(name) {
+      try {
+        await pyodide.loadPackage(name);
+        log(`✅ Loaded ${name}`);
+      } catch (err) {
+        log(`❌ Error loading ${name}: ${err}`);
+      }
+    }
+
     async function main() {
       log('Loading Pyodide...');
       pyodide = await loadPyodide();
@@ -66,9 +75,11 @@
       // 定義 JS 端可供 Python 呼叫的功能
       await pyodide.runPythonAsync(`
         import js
-        def log(msg): js.log(str(msg))
-        def print(msg): js.log(str(msg))
+        import builtins
+        # 覆蓋所有作用域的 print
+        builtins.print = lambda *args, **kwargs: js.log(" ".join(map(str, args)))
       `);
+      log("Loading modules...");
       // 告知 React Native：初始化完成，可傳送資料
       window.ReactNativeWebView?.postMessage(JSON.stringify({ type: 'PYODIDE_READY' }));
     }
@@ -79,12 +90,20 @@
       if (msg.type === 'LOAD_SCRIPTS') {
         scriptMap = msg.scripts;
         for (let [name, content] of Object.entries(scriptMap)) {
+          console.log(`Loading ${name}...`);
           pyodide.FS.writeFile(name, content);
         }
         // 假設你有一個 main.py，現在明確執行它：
         if (scriptMap['main.py']) {
           runCode();
         }
+      }
+      if (msg.type === 'LOAD_PACKAGES') {
+        for (const n of msg.packages) {
+          log(`Loading ${n}...`);
+          await load_module(n);
+        }
+        window.ReactNativeWebView?.postMessage(JSON.stringify({ type: 'MODULE_LOADED' }));
       }
     });
 

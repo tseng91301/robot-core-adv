@@ -2,6 +2,7 @@
 
 buildscript {
   repositories {
+    maven { url "https://jitpack.io" }
     google()
     mavenCentral()
   }
@@ -35,3 +36,7 @@ allprojects {
 
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
+
+repositories {
+  mavenCentral()
+}

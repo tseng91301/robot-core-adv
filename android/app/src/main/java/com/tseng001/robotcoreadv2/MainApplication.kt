@@ -17,6 +17,7 @@ import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 
 import com.robotcoreadv.MyBlePackage
+import com.robotcoreadv.FtpServerPackage
 
 import managePermission.PermissionFilePackage;
 
@@ -32,6 +33,7 @@ class MainApplication : Application(), ReactApplication {
             // packages.add(MyReactNativePackage())
             packages.add(MyBlePackage())
             packages.add(PermissionFilePackage())
+            packages.add(FtpServerPackage())
 
             return packages
           }
