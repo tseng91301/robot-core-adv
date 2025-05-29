@@ -124,6 +124,8 @@ const PythonFromExternalStorageScreen = () => {
         type: 'LOAD_SCRIPTS',
         scripts: pyScripts
       }));
+    } else if (data.type === 'MOTOR') {
+      console.log(`Motor Speed: ${data.spd}`)
     }
   };
 
@@ -131,7 +133,9 @@ const PythonFromExternalStorageScreen = () => {
     <View style={{ flex: 1 }}>
       <WebView
         ref={webViewRef}
-        source={require('@/assets/python/external-executer-webview.html')}
+        source={{uri: 'file:///android_asset/python/external-executer-webview.html'}}
+        // source={require('@/android/app/src/main/assets/python/external-executer-webview.html')}
+        allowFileAccess={true}
         originWhitelist={['*']}
         javaScriptEnabled={true}
         onLoadEnd={onWebViewLoad}
